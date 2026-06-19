@@ -1,0 +1,263 @@
+{
+    "info": {
+        "name": "Healthcare User Registration API - Automation Tests",
+        "description": "Postman collection for validating User Registration API using JavaScript tests.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "https://qa-healthcare-api.example.com"
+        },
+        {
+            "key": "apiKey",
+            "value": "REPLACE_WITH_API_KEY"
+        },
+        {
+            "key": "environment",
+            "value": "QA"
+        }
+    ],
+    "item": [
+        {
+            "name": "TC01 - Successful User Registration - 201 Created",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "x-api-key",
+                        "value": "{{apiKey}}"
+                    }
+                ],
+                "url": "{{baseUrl}}/v1/user/register",
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"username\": \"testuser123\", \"email\": \"testuser123@example.com\", \"password\": \"SecurePassword123!\", \"fullName\": \"John Doe\"}"
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status code is 201', function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "",
+                            "pm.test('Response contains success message and user id', function () {",
+                            "    const jsonData = pm.response.json();",
+                            "    pm.expect(jsonData.message).to.exist;",
+                            "    pm.expect(jsonData.data.id).to.exist;",
+                            "});",
+                            "",
+                            "pm.test('Token is generated', function () {",
+                            "    const jsonData = pm.response.json();",
+                            "    pm.expect(jsonData.token).to.exist;",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TC02 - Missing Mandatory Fields - 400 Bad Request",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "x-api-key",
+                        "value": "{{apiKey}}"
+                    }
+                ],
+                "url": "{{baseUrl}}/v1/user/register",
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"username\": \"\", \"email\": \"\", \"password\": \"\"}"
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status code is 400', function () {",
+                            "    pm.response.to.have.status(400);",
+                            "});",
+                            "",
+                            "pm.test('Validation error message exists', function () {",
+                            "    const jsonData = pm.response.json();",
+                            "    pm.expect(jsonData.message).to.exist;",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TC03 - Duplicate Email Or Username - 409 Conflict",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "x-api-key",
+                        "value": "{{apiKey}}"
+                    }
+                ],
+                "url": "{{baseUrl}}/v1/user/register",
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"username\": \"existinguser\", \"email\": \"existing@example.com\", \"password\": \"SecurePassword123!\", \"fullName\": \"Existing User\"}"
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status code is 409 or 400', function () {",
+                            "    pm.expect([400,409]).to.include(pm.response.code);",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TC04 - Invalid Email Or Weak Password - 400 Bad Request",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "x-api-key",
+                        "value": "{{apiKey}}"
+                    }
+                ],
+                "url": "{{baseUrl}}/v1/user/register",
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"username\": \"invaliduser\", \"email\": \"invalid-email\", \"password\": \"123\", \"fullName\": \"Test User\"}"
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status code is 400', function () {",
+                            "    pm.response.to.have.status(400);",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TC05 - Missing API Key Header",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": "{{baseUrl}}/v1/user/register"
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('API key validation fails', function () {",
+                            "    pm.expect([401,403]).to.include(pm.response.code);",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TC06 - Trim Leading And Trailing Spaces",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "x-api-key",
+                        "value": "{{apiKey}}"
+                    }
+                ],
+                "url": "{{baseUrl}}/v1/user/register",
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"username\": \"  testuser456  \", \"email\": \" test456@example.com \", \"password\": \"SecurePassword123!\", \"fullName\": \" John Smith \"}"
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Backend trims input values', function () {",
+                            "    const jsonData = pm.response.json();",
+                            "    pm.expect(jsonData.data.fullName).to.equal('John Smith');",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "TC07 - Invalid JSON Payload Format",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "x-api-key",
+                        "value": "{{apiKey}}"
+                    }
+                ],
+                "url": "{{baseUrl}}/v1/user/register",
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"username\":\"testuser\" \"email\":\"missingComma@example.com\"}"
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Invalid JSON returns bad request', function () {",
+                            "    pm.expect([400,422]).to.include(pm.response.code);",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}
